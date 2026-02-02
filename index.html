@@ -3,465 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Albarokah Jahe</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Dashboard Keuangan - Albarokah Jahe</title>
     
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        /* TEMA: Deep Emerald -> Black -> Neon Lime */
-        body { 
-            font-family: 'Inter', sans-serif; 
+        body { font-family: 'Inter', sans-serif; }
+        
+        #app { 
+            min-height: 100vh;
             background-color: #000000;
-            background-image: linear-gradient(135deg, #031e13 0%, #000000 60%, #0f3900 100%);
+            background-image: linear-gradient(135deg, #031e13 0%, #022c22 30%, #000000 60%, #0f3900 100%);
             background-attachment: fixed;
             color: #e2e8f0;
+            padding-bottom: 50px;
         }
 
         /* Glassmorphism Card */
-        .glass-card { 
-            background: rgba(20, 20, 20, 0.6); 
+        .glass-card {
+            background: rgba(20, 20, 20, 0.6);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
         }
+        .glass-card:hover { transform: translateY(-5px); border-color: rgba(96, 255, 0, 0.3); }
 
-        /* Input Styling */
-        .input-label { display: block; margin-bottom: 6px; font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-        
-        .input-field { 
-            background: rgba(255, 255, 255, 0.03); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            color: #fff; 
-            font-size: 0.875rem; 
-            border-radius: 8px; 
-            display: block; 
-            width: 100%; 
-            padding: 8px 12px;
-            transition: all 0.2s;
-        }
-        .input-field:focus { 
-            outline: none; border-color: #60FF00; box-shadow: 0 0 0 2px rgba(96, 255, 0, 0.1); background: rgba(255, 255, 255, 0.05);
-        }
+        /* Neon Text Utilities */
+        .text-neon-green { color: #60FF00; text-shadow: 0 0 10px rgba(96, 255, 0, 0.3); }
+        .text-neon-red { color: #ff4d4d; text-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
+        .text-neon-cyan { color: #22d3ee; text-shadow: 0 0 10px rgba(34, 211, 238, 0.3); }
 
-        .money-input { font-family: 'Courier New', monospace; text-align: right; font-weight: bold; letter-spacing: -0.5px; }
-
-        /* Readonly Summary Fields */
-        .summary-display {
-            background: rgba(0,0,0,0.3);
-            border: 1px dashed rgba(255,255,255,0.2);
-            text-align: right;
-            padding: 8px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            color: #ddd;
-        }
-
-        /* Calculation Line */
-        .calc-line {
-            border-bottom: 1px dashed rgba(255,255,255,0.3);
-            margin: 15px 0;
-            position: relative;
-        }
-        .calc-line::after {
-            content: '+/-'; position: absolute; right: 0; top: -10px; background: #000; padding: 0 5px; font-size: 10px; color: #aaa;
-        }
-
-        /* Buttons */
-        .btn-add { 
-            margin-top: 5px; width: 100%; py: 10px; 
-            border: 1px dashed rgba(255,255,255,0.2); 
-            color: #94a3b8; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
-            transition: all 0.2s;
-        }
-        .btn-add:hover { border-color: #60FF00; color: #60FF00; background: rgba(96, 255, 0, 0.05); }
-
-        .btn-neon {
-            background-color: #60FF00; color: #000;
-            box-shadow: 0 0 15px rgba(96, 255, 0, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .btn-neon:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(96, 255, 0, 0.6); }
-
-        h2 { color: #fff; font-size: 1rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
-        
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
     </style>
 </head>
-<body class="p-4 md:p-6 max-w-[1400px] mx-auto">
+<body>
 
-    <div class="mb-6 relative z-10 flex flex-col md:flex-row justify-between items-end gap-4">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-900 flex items-center justify-center shadow-[0_0_20px_rgba(96,255,0,0.3)]">
-                <i class="fas fa-calculator text-white text-sm"></i>
-            </div>
-            <div>
-                <h1 class="text-2xl font-black text-white tracking-tight">ADMIN KEUANGAN</h1>
-                <p class="text-gray-400 text-xs">Generator Laporan V.10 (Final)</p>
-            </div>
-        </div>
-
-        <div class="flex gap-2 w-full md:w-auto">
-            <input type="text" id="importUrlInput" class="input-field !bg-white/10 !w-64 text-xs" placeholder="Paste URL AppSheet...">
-            <button onclick="importData()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs whitespace-nowrap shadow-lg">
-                <i class="fas fa-bolt mr-1"></i> Muat Data
-            </button>
-        </div>
-    </div>
-
-    <form id="mainForm" onsubmit="event.preventDefault();">
+<div id="app" class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto space-y-8">
         
-        <div class="glass-card">
-            <h2><i class="fas fa-calendar-alt text-gray-400"></i> Konfigurasi Periode & Neraca</h2>
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
-                <div class="md:col-span-1"><label class="input-label">Bulan</label><input type="text" id="bulanNama" class="input-field" value="Januari"></div>
-                <div class="md:col-span-1"><label class="input-label">Tahun</label><input type="number" id="tahunAngka" class="input-field" value="2026"></div>
-                <div class="md:col-span-1"><label class="input-label">Tgl Mulai</label><input type="text" id="startDate" class="input-field" value="1 Januari 2026"></div>
-                <div class="md:col-span-1"><label class="input-label">Tgl Selesai</label><input type="text" id="endDate" class="input-field" value="31 Januari 2026"></div>
-                <div class="md:col-span-1"><label class="input-label text-yellow-500">Total Hutang</label><input type="text" id="totalHutang" class="input-field money-input text-yellow-400 text-xs" onkeyup="formatMe(this)"></div>
-                <div class="md:col-span-1"><label class="input-label text-purple-400">Total Piutang</label><input type="text" id="totalPiutang" class="input-field money-input text-purple-400 text-xs" onkeyup="formatMe(this)"></div>
+        <div class="flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-6">
+            <div>
+                <h1 class="text-4xl font-black tracking-tighter text-white mb-2">
+                    DASHBOARD <span class="text-neon-green">KEUANGAN</span>
+                </h1>
+                <p class="text-gray-400 text-sm flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-neon-green"></i> 
+                    Periode: <span id="displayPeriode" class="font-bold text-white">Menunggu Data...</span>
+                </p>
+            </div>
+            <div class="mt-4 md:mt-0 text-right">
+                <div class="text-xs text-gray-500 uppercase tracking-widest mb-1">Status Data</div>
+                <div id="dataStatus" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800 text-xs font-bold text-gray-400 border border-gray-700">
+                    <div class="w-2 h-2 rounded-full bg-gray-500"></div> Default Mode
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-
-            <div class="glass-card border-t-4 border-cyan-500 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 w-20 h-20 bg-cyan-500/20 blur-xl rounded-full"></div>
-                <h2 class="text-cyan-400 relative z-10"><i class="fas fa-coins"></i> 1. Pemasukan & HPP (Laba)</h2>
-                
-                <div class="space-y-4 relative z-10">
-                    <div><label class="input-label">Penjualan Kotor (URL)</label><input type="text" id="penjualanKotor" class="input-field money-input" onkeyup="formatMe(this); autoCalc()" placeholder="0"></div>
-                    <div class="relative">
-                        <label class="input-label text-red-400">Total Retur (URL)</label>
-                        <span class="absolute left-2 top-8 text-red-500 font-bold">-</span>
-                        <input type="text" id="totalRetur" class="input-field money-input text-red-400" onkeyup="formatMe(this); autoCalc()" placeholder="0">
-                    </div>
-                    <div class="calc-line"></div>
-                    <div><label class="input-label text-cyan-400 font-bold">Total Pemasukan (Calc)</label><input type="text" id="totalPemasukan" class="input-field money-input bg-cyan-900/20 text-cyan-400 border-cyan-500/30" readonly placeholder="0"></div>
-                    
-                    <div class="pt-4 border-t border-white/5 mt-4">
-                        <label class="input-label text-rose-300 font-bold">HPP Total (Cost of Goods)</label>
-                        <p class="text-[9px] text-gray-500 mb-1">*Untuk hitung Laba Kotor</p>
-                        <input type="text" id="hppTotal" class="input-field money-input text-rose-300 border-rose-500/30" onkeyup="formatMe(this); autoCalc()" placeholder="0">
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-card border-t-4 border-green-500 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 w-20 h-20 bg-green-500/20 blur-xl rounded-full"></div>
-                <h2 class="text-green-400 relative z-10"><i class="fas fa-chart-line"></i> 2. Profitabilitas</h2>
-                
-                <div class="space-y-4 relative z-10">
-                    <div><label class="input-label text-gray-400">Laba Kotor (Pemasukan - HPP)</label><input type="text" id="refLabaKotor" class="input-field money-input bg-transparent border-dashed text-gray-300" readonly placeholder="0"></div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="relative">
-                            <label class="input-label text-red-400">Total Ops Pokok</label>
-                            <span class="absolute left-2 top-8 text-red-500 font-bold">-</span>
-                            <input type="text" id="displaySumPokok" class="input-field money-input text-red-300 bg-transparent border-red-500/20" readonly placeholder="0">
-                        </div>
-                        <div class="relative">
-                            <label class="input-label text-yellow-400">Total Ops Lain</label>
-                            <span class="absolute left-2 top-8 text-red-500 font-bold">-</span>
-                            <input type="text" id="displaySumLain" class="input-field money-input text-yellow-300 bg-transparent border-yellow-500/20" readonly placeholder="0">
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-gray-500 text-center italic">*Rincian diedit di tabel bawah</p>
-
-                    <div class="calc-line"></div>
-                    <div class="bg-green-900/20 p-3 rounded-lg border border-green-500/30 text-center">
-                        <label class="input-label text-[#60FF00] font-bold">LABA BERSIH (Calc)</label>
-                        <div id="labaBersih" class="text-3xl font-black text-[#60FF00] drop-shadow-[0_0_10px_rgba(96,255,0,0.5)]">Rp 0</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-card border-t-4 border-purple-500 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 w-20 h-20 bg-purple-500/20 blur-xl rounded-full"></div>
-                <h2 class="text-purple-400 relative z-10"><i class="fas fa-wallet"></i> 3. Arus Kas (Cashflow)</h2>
-                
-                <div class="space-y-4 relative z-10">
-                    <div><label class="input-label text-cyan-400">T. Pemasukan Bersih (Ref)</label><input type="text" id="refPemasukan" class="input-field money-input bg-transparent border-dashed text-cyan-400" readonly placeholder="0"></div>
-                    
-                    <div class="relative">
-                        <label class="input-label text-rose-300 font-bold">Total Belanja (Cash Out)</label>
-                        <p class="text-[9px] text-gray-500 mb-1">*Uang keluar untuk stok (bisa beda dgn HPP)</p>
-                        <span class="absolute left-2 top-11 text-red-500 font-bold">-</span>
-                        <input type="text" id="totalBelanja" class="input-field money-input text-rose-300 border-rose-500/30" onkeyup="formatMe(this); autoCalc()" placeholder="0">
-                    </div>
-
-                    <div class="relative">
-                        <label class="input-label text-orange-300">T. Operasional Total (Ref)</label>
-                        <span class="absolute left-2 top-8 text-red-500 font-bold">-</span>
-                        <input type="text" id="refTotalOps" class="input-field money-input bg-transparent border-dashed text-orange-300" readonly placeholder="0">
-                    </div>
-                    <div class="calc-line"></div>
-                    <div class="bg-purple-900/20 p-3 rounded-lg border border-purple-500/30 text-center">
-                        <label class="input-label text-purple-300 font-bold">ARUS KAS (Calc)</label>
-                        <div id="arusKasBersih" class="text-3xl font-black text-purple-300">Rp 0</div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <h3 class="text-xl font-bold text-white mb-4 pl-2 border-l-4 border-indigo-500 ml-1">Rincian / Audit Operasional</h3>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            <div class="glass-card !p-0 overflow-hidden">
-                <div class="bg-red-900/30 p-4 border-b border-white/10 flex justify-between items-center">
-                    <h3 class="font-bold text-red-400"><i class="fas fa-list-ul mr-2"></i>Ops. Pokok</h3>
-                    <span class="text-xs text-gray-400">Item Rutin</span>
+            <div class="glass-card p-6 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fas fa-coins text-6xl text-cyan-400"></i></div>
+                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Penjualan Kotor</p>
+                <h3 id="dispOmset" class="text-2xl md:text-3xl font-black text-white">Rp 0</h3>
+                <div class="mt-4 text-xs text-cyan-400 border-t border-white/10 pt-2 flex justify-between">
+                    <span>Retur:</span>
+                    <span id="dispRetur" class="font-mono text-red-400">-Rp 0</span>
                 </div>
-                <div class="p-4">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-gray-500 uppercase border-b border-gray-700">
-                            <tr><th class="py-2">Uraian</th><th class="py-2 text-right">Jumlah (Rp)</th><th class="w-8"></th></tr>
-                        </thead>
-                        <tbody id="bodyPokok" class="divide-y divide-gray-800"></tbody>
+            </div>
+
+            <div class="glass-card p-6 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fas fa-money-bill-wave text-6xl text-blue-400"></i></div>
+                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Pemasukan Bersih</p>
+                <h3 id="dispPemasukan" class="text-2xl md:text-3xl font-black text-blue-100">Rp 0</h3>
+                <div class="mt-4 text-xs text-gray-400 border-t border-white/10 pt-2">
+                    Net Revenue (Setelah Retur)
+                </div>
+            </div>
+
+            <div class="glass-card p-6 relative overflow-hidden group border-b-4 border-green-500">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fas fa-chart-line text-6xl text-neon-green"></i></div>
+                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Laba Bersih (Net Profit)</p>
+                <h3 id="dispLabaBersih" class="text-2xl md:text-3xl font-black text-neon-green">Rp 0</h3>
+                <div class="mt-4 text-xs text-gray-400 border-t border-white/10 pt-2 flex justify-between">
+                    <span>Margin:</span>
+                    <span id="dispMarginPersen" class="font-bold text-white">0%</span>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 relative overflow-hidden group border-b-4 border-purple-500">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fas fa-wallet text-6xl text-purple-400"></i></div>
+                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Arus Kas (Cashflow)</p>
+                <h3 id="dispArusKas" class="text-2xl md:text-3xl font-black text-purple-300">Rp 0</h3>
+                <div class="mt-4 text-xs text-gray-400 border-t border-white/10 pt-2">
+                    Real Cash (In - Out)
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="glass-card p-6 lg:col-span-1">
+                <h4 class="text-sm font-bold text-white mb-4 border-b border-white/10 pb-2">STRUKTUR PENGELUARAN</h4>
+                <div class="relative h-64">
+                    <canvas id="chartPengeluaran"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 lg:col-span-2">
+                <h4 class="text-sm font-bold text-white mb-4 border-b border-white/10 pb-2">ANALISA MARGIN (PRODUK & KANAL)</h4>
+                <div class="relative h-64">
+                    <canvas id="chartMargin"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="glass-card p-0 overflow-hidden">
+                <div class="bg-red-900/20 p-4 border-b border-white/10 flex justify-between">
+                    <h4 class="font-bold text-red-400 text-sm">OPS. POKOK</h4>
+                    <span id="sumPokok" class="font-mono text-xs font-bold text-white bg-red-600/50 px-2 rounded">Rp 0</span>
+                </div>
+                <div class="p-4 h-64 overflow-y-auto custom-scroll">
+                    <table class="w-full text-xs text-left">
+                        <tbody id="tablePokok" class="divide-y divide-white/5 text-gray-300"></tbody>
                     </table>
-                    <button onclick="addRow('bodyPokok')" class="btn-add mt-4">+ Tambah Item Pokok</button>
                 </div>
             </div>
 
-            <div class="glass-card !p-0 overflow-hidden">
-                <div class="bg-yellow-900/30 p-4 border-b border-white/10 flex justify-between items-center">
-                    <h3 class="font-bold text-yellow-400"><i class="fas fa-random mr-2"></i>Ops. Lain-lain</h3>
-                    <span class="text-xs text-gray-400">Insidentil</span>
+            <div class="glass-card p-0 overflow-hidden">
+                <div class="bg-yellow-900/20 p-4 border-b border-white/10 flex justify-between">
+                    <h4 class="font-bold text-yellow-400 text-sm">OPS. LAIN-LAIN</h4>
+                    <span id="sumLain" class="font-mono text-xs font-bold text-white bg-yellow-600/50 px-2 rounded">Rp 0</span>
                 </div>
-                <div class="p-4">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-gray-500 uppercase border-b border-gray-700">
-                            <tr><th class="py-2">Uraian</th><th class="py-2 text-right">Jumlah (Rp)</th><th class="w-8"></th></tr>
-                        </thead>
-                        <tbody id="bodyLain" class="divide-y divide-gray-800"></tbody>
+                <div class="p-4 h-64 overflow-y-auto custom-scroll">
+                    <table class="w-full text-xs text-left">
+                        <tbody id="tableLain" class="divide-y divide-white/5 text-gray-300"></tbody>
                     </table>
-                    <button onclick="addRow('bodyLain')" class="btn-add mt-4">+ Tambah Item Lain</button>
                 </div>
             </div>
-        </div>
 
-        <div class="glass-card">
-            <div onclick="document.getElementById('marginDetail').classList.toggle('hidden')" class="flex justify-between items-center cursor-pointer hover:text-white transition">
-                <h2><i class="fas fa-sliders-h text-gray-500"></i> Data Tambahan (BPOM/Online)</h2>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </div>
-            <div id="marginDetail" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 hidden">
-                <div class="space-y-2 p-3 bg-white/5 rounded border border-white/5">
-                    <h3 class="font-bold text-xs uppercase text-gray-400">Kategori BPOM</h3>
-                    <input type="text" id="hppBpom" class="input-field money-input" placeholder="HPP BPOM" onkeyup="formatMe(this)">
-                    <input type="text" id="labaBpom" class="input-field money-input text-green-400" placeholder="Laba BPOM" onkeyup="formatMe(this)">
+            <div class="glass-card p-6 flex flex-col justify-between">
+                <div>
+                    <h4 class="text-sm font-bold text-white mb-4 border-b border-white/10 pb-2">POSISI KEUANGAN</h4>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                            <span class="text-xs text-yellow-500 uppercase font-bold">Total Hutang</span>
+                            <span id="dispHutang" class="font-mono font-bold text-yellow-400">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                            <span class="text-xs text-purple-400 uppercase font-bold">Total Piutang</span>
+                            <span id="dispPiutang" class="font-mono font-bold text-purple-300">Rp 0</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="space-y-2 p-3 bg-white/5 rounded border border-white/5">
-                    <h3 class="font-bold text-xs uppercase text-gray-400">Kanal ONLINE</h3>
-                    <input type="text" id="hppOnline" class="input-field money-input" placeholder="HPP Online" onkeyup="formatMe(this)">
-                    <input type="text" id="labaOnline" class="input-field money-input text-green-400" placeholder="Laba Online" onkeyup="formatMe(this)">
+                
+                <div class="mt-6 pt-6 border-t border-white/10">
+                    <h4 class="text-sm font-bold text-white mb-2">HPP vs BELANJA</h4>
+                    <div class="text-xs space-y-2">
+                        <div class="flex justify-between text-gray-400">
+                            <span>HPP (Cost of Goods):</span>
+                            <span id="dispHPP" class="text-white">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between text-gray-400">
+                            <span>Total Belanja (Cash Out):</span>
+                            <span id="dispBelanja" class="text-white">Rp 0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
+
         </div>
 
-        <div class="h-32"></div>
-        <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[95%] max-w-lg glass-card !p-2 !mb-0 z-[60] !bg-black/90 !backdrop-blur-xl border-t border-[#60FF00]/50 shadow-2xl flex justify-center items-center rounded-full">
-             <button onclick="generateLink()" class="btn-neon px-12 py-3 rounded-full font-black text-sm flex items-center gap-2 tracking-widest hover:scale-105 transition">
-                <i class="fas fa-rocket"></i> PUBLISH DATA
-            </button>
-        </div>
-
-    </form>
-
-    <div id="resultModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[100] p-4 backdrop-blur-sm">
-        <div class="glass-card max-w-xl w-full !mb-0 !bg-gray-900 border border-[#60FF00]/30">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-xl font-bold text-white">Link Siap!</h3>
-                <button onclick="document.getElementById('resultModal').classList.add('hidden')" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
+        <div class="glass-card p-0 overflow-hidden">
+             <div class="bg-gray-800/50 p-4 border-b border-white/10">
+                <h4 class="font-bold text-white text-sm">DETAIL MARGIN PER KATEGORI</h4>
             </div>
-            <textarea id="finalLink" class="w-full h-32 bg-black border border-gray-700 rounded-lg p-3 text-xs font-mono break-all text-green-500 focus:outline-none focus:border-[#60FF00] mb-6" readonly></textarea>
-            <div class="flex gap-3">
-                <a id="testBtn" href="#" target="_blank" class="flex-1 py-3 border border-gray-600 text-gray-300 font-bold rounded-lg hover:bg-white/5 text-center transition text-sm">Buka Link</a>
-                <button onclick="copyLink()" class="flex-1 py-3 btn-neon font-bold rounded-lg text-sm">Salin Link</button>
+            <div class="p-0 overflow-x-auto">
+                <table class="w-full text-xs text-left text-gray-300">
+                    <thead class="bg-white/5 text-gray-100 uppercase font-bold">
+                        <tr>
+                            <th class="px-6 py-3">Kategori</th>
+                            <th class="px-6 py-3 text-right">Omset</th>
+                            <th class="px-6 py-3 text-right">HPP</th>
+                            <th class="px-6 py-3 text-right">Laba</th>
+                            <th class="px-6 py-3 text-right">Margin %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableMarginBody" class="divide-y divide-white/5">
+                        </tbody>
+                </table>
             </div>
         </div>
+        
+        <div class="text-center text-xs text-gray-600 pb-8">
+            &copy; 2026 Albarokah Jahe Financial System. Generated via AppSheet.
+        </div>
+
     </div>
+</div>
 
-    <script>
-        // --- KONFIGURASI DOMAIN ---
-        // PENTING: Link hasil generate akan SELALU mengarah ke sini.
-        const TARGET_DOMAIN = "https://dukunexcel.github.io/PPTJahe/";
+<script>
+    // --- 1. STATE MANAGEMENT ---
+    const DATA = {
+        // Defaults (Kosong)
+        bulan: '-', tahun: '-',
+        penjualanKotor: 0, totalRetur: 0, totalPemasukan: 0,
+        hppTotal: 0, totalBelanja: 0,
+        labaKotor: 0, labaBersih: 0, arusKasBersih: 0,
+        opsLain: 0, opsNonPrive: 0, // opsNonPrive = Total Ops
+        totalHutang: 0, totalPiutang: 0,
+        
+        // Margin
+        hppBpom: 0, labaBpom: 0, omsetBpom: 0,
+        hppNonBpom: 0, labaNonBpom: 0, omsetNonBpom: 0,
+        hppOnline: 0, labaOnline: 0, omsetOnline: 0,
+        hppOffline: 0, labaOffline: 0, omsetOffline: 0,
 
-        // --- 1. IMPORT DATA ---
-        function importData() {
-            const urlInput = document.getElementById('importUrlInput').value;
-            if (!urlInput) { alert("Paste dulu URL-nya!"); return; }
+        // Arrays
+        rincianPokok: [],
+        rincianLain: []
+    };
+
+    // --- 2. URL PARAMETER PARSER (THE ENGINE) ---
+    function loadData() {
+        const p = new URLSearchParams(window.location.search);
+        
+        // Cek Trigger
+        if (!p.has('penjualan_kotor')) {
+            console.log("No Data Params. Showing defaults.");
+            return;
+        }
+
+        // Update Status UI
+        const statusEl = document.getElementById('dataStatus');
+        statusEl.innerHTML = `<div class="w-2 h-2 rounded-full bg-neon-green shadow-[0_0_10px_#60FF00]"></div> Live Data`;
+        statusEl.classList.replace('border-gray-700', 'border-green-500/50');
+        statusEl.classList.replace('text-gray-400', 'text-green-400');
+
+        // Helper Get Number
+        const n = (k) => Number(p.get(k)) || 0;
+
+        // Basic Info
+        DATA.bulan = p.get('bulan_nama') || '-';
+        DATA.tahun = p.get('tahun_angka') || '-';
+
+        // KPI
+        DATA.penjualanKotor = n('penjualan_kotor');
+        DATA.totalRetur = n('total_retur');
+        DATA.totalPemasukan = n('total_pemasukan');
+        
+        DATA.hppTotal = n('hpp_total');      // Untuk Laba
+        DATA.totalBelanja = n('total_belanja'); // Untuk Cashflow
+        
+        DATA.labaKotor = n('laba_kotor');
+        DATA.labaBersih = n('laba_bersih');
+        DATA.arusKasBersih = n('arus_kas_bersih');
+        
+        DATA.opsLain = n('ops_lain_lain');
+        DATA.opsNonPrive = n('ops_non_prive'); // Ini Total Ops di rumus Admin
+
+        DATA.totalHutang = n('total_hutang');
+        DATA.totalPiutang = n('total_piutang');
+
+        // Margin
+        DATA.hppBpom = n('hpp_bpom'); DATA.labaBpom = n('laba_bpom'); DATA.omsetBpom = n('omset_bpom');
+        DATA.hppNonBpom = n('hpp_non_bpom'); DATA.labaNonBpom = n('laba_non_bpom'); DATA.omsetNonBpom = n('omset_non_bpom');
+        DATA.hppOnline = n('hpp_online'); DATA.labaOnline = n('laba_online'); DATA.omsetOnline = n('omset_online');
+        DATA.hppOffline = n('hpp_offline'); DATA.labaOffline = n('laba_offline'); DATA.omsetOffline = n('omset_offline');
+
+        // JSON Arrays (Fix Trailing Comma)
+        const parseArr = (k) => {
+            if(!p.has(k)) return [];
             try {
-                const urlObj = new URL(urlInput);
-                const params = new URLSearchParams(urlObj.search);
-                const setVal = (id, k, m=false) => { if(params.has(k)) { let v=params.get(k); if(m) v=Number(v).toLocaleString('id-ID'); document.getElementById(id).value=v; }};
+                let raw = p.get(k).replace(/,\s*\]$/, ']'); // Remove trailing comma
+                return JSON.parse(raw);
+            } catch(e) { console.error('JSON Error', e); return []; }
+        };
 
-                setVal('bulanNama', 'bulan_nama'); setVal('tahunAngka', 'tahun_angka');
-                setVal('startDate', 'start_date_text'); setVal('endDate', 'end_date_text');
-                setVal('penjualanKotor', 'penjualan_kotor', true);
-                setVal('totalRetur', 'total_retur', true);
-                
-                // MAPPING TERPISAH: HPP (LABA) vs BELANJA (CASH)
-                setVal('hppTotal', 'hpp_total', true);          // Untuk Laba
-                setVal('totalBelanja', 'total_belanja', true);  // Untuk Arus Kas
+        DATA.rincianPokok = parseArr('beban_rincian');
+        DATA.rincianLain = parseArr('rincian_ops_lain_v');
+    }
 
-                setVal('totalHutang', 'total_hutang', true);
-                setVal('totalPiutang', 'total_piutang', true);
-                setVal('hppBpom', 'hpp_bpom', true); setVal('labaBpom', 'laba_bpom', true);
-                setVal('hppOnline', 'hpp_online', true); setVal('labaOnline', 'laba_online', true);
+    // --- 3. RENDER UI ---
+    function renderUI() {
+        // Text Updates
+        document.getElementById('displayPeriode').innerText = `${DATA.bulan} ${DATA.tahun}`;
+        
+        const fmt = (v) => "Rp " + Number(v).toLocaleString('id-ID');
+        
+        document.getElementById('dispOmset').innerText = fmt(DATA.penjualanKotor);
+        document.getElementById('dispRetur').innerText = "- " + fmt(DATA.totalRetur);
+        document.getElementById('dispPemasukan').innerText = fmt(DATA.totalPemasukan);
+        
+        const elLaba = document.getElementById('dispLabaBersih');
+        elLaba.innerText = fmt(DATA.labaBersih);
+        elLaba.className = DATA.labaBersih < 0 ? "text-2xl md:text-3xl font-black text-red-500" : "text-2xl md:text-3xl font-black text-neon-green";
 
-                if (params.has('beban_rincian')) { try { fillTable('bodyPokok', JSON.parse(params.get('beban_rincian').replace(/,\s*\]/, ']'))); } catch(e){} }
-                if (params.has('rincian_ops_lain_v')) { try { fillTable('bodyLain', JSON.parse(params.get('rincian_ops_lain_v').replace(/,\s*\]/, ']'))); } catch(e){} }
+        const elKas = document.getElementById('dispArusKas');
+        elKas.innerText = fmt(DATA.arusKasBersih);
+        elKas.className = DATA.arusKasBersih < 0 ? "text-2xl md:text-3xl font-black text-red-400" : "text-2xl md:text-3xl font-black text-purple-300";
 
-                autoCalc(); alert("Data berhasil dimuat!");
-            } catch (e) { console.error(e); alert("URL tidak valid."); }
-        }
+        // Margin Percentage
+        const marginP = DATA.totalPemasukan > 0 ? ((DATA.labaBersih / DATA.totalPemasukan) * 100).toFixed(1) : 0;
+        document.getElementById('dispMarginPersen').innerText = marginP + "%";
 
-        function fillTable(tbodyId, dataArray) {
-            const tbody = document.getElementById(tbodyId);
-            tbody.innerHTML = '';
-            if (Array.isArray(dataArray)) {
-                dataArray.forEach(item => { if(item.uraian && item.jumlah > 0) addTableRow(tbodyId, item.uraian, item.jumlah); });
-            }
-        }
+        // Neraca & HPP
+        document.getElementById('dispHutang').innerText = fmt(DATA.totalHutang);
+        document.getElementById('dispPiutang').innerText = fmt(DATA.totalPiutang);
+        document.getElementById('dispHPP').innerText = fmt(DATA.hppTotal);
+        document.getElementById('dispBelanja').innerText = fmt(DATA.totalBelanja);
 
-        // --- 2. CALCULATIONS ---
-        function autoCalc() {
-            // A. Get Main Inputs
-            const kotor = getVal('penjualanKotor');
-            const retur = Math.abs(getVal('totalRetur'));
-            
-            // DUA INPUT TERPISAH
-            const hpp = getVal('hppTotal');        // Cost of Goods Sold
-            const belanja = getVal('totalBelanja');// Purchase / Cash Out
+        // Sum Ops
+        document.getElementById('sumPokok').innerText = fmt(DATA.rincianPokok.reduce((a,b)=>a+b.jumlah,0));
+        document.getElementById('sumLain').innerText = fmt(DATA.rincianLain.reduce((a,b)=>a+b.jumlah,0));
 
-            // B. Calculate Ops
-            let totalPokok = 0;
-            document.querySelectorAll('#bodyPokok tr').forEach(row => totalPokok += Number(row.querySelector('.money-input').value.replace(/\./g, '')) || 0);
-            setDisplay('displaySumPokok', totalPokok); // FIX: Mengisi Input Field
+        // Render Tables
+        fillTable('tablePokok', DATA.rincianPokok);
+        fillTable('tableLain', DATA.rincianLain);
+        renderMarginTable();
 
-            let totalLain = 0;
-            document.querySelectorAll('#bodyLain tr').forEach(row => totalLain += Number(row.querySelector('.money-input').value.replace(/\./g, '')) || 0);
-            setDisplay('displaySumLain', totalLain); // FIX: Mengisi Input Field
+        // Render Charts
+        renderCharts();
+    }
 
-            const totalOps = totalPokok + totalLain;
+    function fillTable(id, arr) {
+        const el = document.getElementById(id);
+        el.innerHTML = '';
+        arr.forEach(x => {
+            el.innerHTML += `
+                <tr class="hover:bg-white/5">
+                    <td class="py-2 pr-2">${x.uraian}</td>
+                    <td class="py-2 text-right font-mono text-white">Rp ${Number(x.jumlah).toLocaleString('id-ID')}</td>
+                </tr>`;
+        });
+    }
 
-            // C. Main Logic
-            const pemasukan = kotor - retur;
-            const labaKotor = pemasukan - hpp; // Profit Logic: Revenue - COGS
-            const labaBersih = labaKotor - totalOps;
-            const arusKas = pemasukan - (belanja + totalOps); // Cashflow Logic: In - Out
-
-            // D. UI Updates
-            // Card 1
-            setDisplay('totalPemasukan', pemasukan);
-            // Card 2
-            setDisplay('refLabaKotor', labaKotor);
-            const elLaba = document.getElementById('labaBersih');
-            elLaba.innerText = formatRp(labaBersih);
-            elLaba.className = labaBersih < 0 ? "text-3xl font-black text-red-500" : "text-3xl font-black text-[#60FF00] drop-shadow-[0_0_10px_rgba(96,255,0,0.5)]";
-            // Card 3
-            setDisplay('refPemasukan', pemasukan);
-            setDisplay('refTotalOps', totalOps);
-            document.getElementById('arusKasBersih').innerText = formatRp(arusKas);
-        }
-
-        // --- 3. GENERATE LINK ---
-        function generateLink() {
-            // BASE URL HARDCODED UNTUK OUTPUT
-            const baseUrl = TARGET_DOMAIN;
-
-            const kotor = getVal('penjualanKotor');
-            const retur = Math.abs(getVal('totalRetur'));
-            const pemasukan = kotor - retur;
-            
-            // Get Both Values
-            const hpp = getVal('hppTotal'); 
-            const belanja = getVal('totalBelanja');
-
-            const labaKotor = pemasukan - hpp;
-            
-            const getTableData = (tbodyId) => {
-                let arr = [];
-                document.querySelectorAll(`#${tbodyId} tr`).forEach(row => {
-                    let u = row.querySelector('input[type="text"]').value; 
-                    let j = Number(row.querySelector('.money-input').value.replace(/\./g, '')) || 0;
-                    if(u && j) arr.push({uraian: u, jumlah: j});
-                });
-                return arr;
-            };
-            const arrPokok = getTableData('bodyPokok');
-            const arrLain = getTableData('bodyLain');
-            const sumPokok = arrPokok.reduce((a,b)=>a+b.jumlah,0);
-            const sumLain = arrLain.reduce((a,b)=>a+b.jumlah,0);
-            const totalOps = sumPokok + sumLain;
-            const labaBersih = labaKotor - totalOps;
-            
-            // Total Pengeluaran (Cash Out) = Belanja + Ops
-            const totalPengeluaran = belanja + totalOps;
-            const arusKas = pemasukan - totalPengeluaran;
-
-            let hppBpom = getVal('hppBpom'); let labaBpom = getVal('labaBpom');
-            let hppOnline = getVal('hppOnline'); let labaOnline = getVal('labaOnline');
-            
-            const params = new URLSearchParams();
-            params.set('bulan_nama', document.getElementById('bulanNama').value);
-            params.set('tahun_angka', document.getElementById('tahunAngka').value);
-            params.set('start_date_text', document.getElementById('startDate').value);
-            params.set('end_date_text', document.getElementById('endDate').value);
-            params.set('durasi_hari', 31);
-            params.set('penjualan_kotor', kotor); params.set('total_retur', retur); params.set('total_pemasukan', pemasukan);
-            
-            // KIRIM KEDUANYA
-            params.set('total_belanja', belanja); // Cash Out
-            params.set('hpp_total', hpp);         // COGS
-            
-            params.set('total_pengeluaran', totalPengeluaran);
-            params.set('ops_lain_lain', sumLain); params.set('ops_non_prive', totalOps); 
-            params.set('laba_kotor', labaKotor); params.set('laba_bersih', labaBersih); params.set('arus_kas_bersih', arusKas);
-            params.set('total_hutang', getVal('totalHutang')); params.set('total_piutang', getVal('totalPiutang'));
-            
-            params.set('hpp_bpom', hppBpom); params.set('laba_bpom', labaBpom); params.set('omset_bpom', hppBpom+labaBpom);
-            // Note: Untuk margin Non-BPOM, kita biasanya pakai HPP Total sebagai basis pengurangan, atau bisa pakai HPP BPOM.
-            // Asumsi disini: Sisa HPP adalah Non-BPOM.
-            params.set('hpp_non_bpom', hpp - hppBpom); params.set('laba_non_bpom', labaKotor - labaBpom); params.set('omset_non_bpom', (hpp - hppBpom)+(labaKotor - labaBpom));
-            params.set('hpp_online', hppOnline); params.set('laba_online', labaOnline); params.set('omset_online', hppOnline+labaOnline);
-            params.set('hpp_offline', hpp - hppOnline); params.set('laba_offline', labaKotor - labaOnline); params.set('omset_offline', (hpp - hppOnline)+(labaKotor - labaOnline));
-            
-            params.set('beban_rincian', JSON.stringify(arrPokok)); params.set('rincian_ops_lain_v', JSON.stringify(arrLain));
-
-            const finalUrl = baseUrl + "?" + params.toString();
-            document.getElementById('finalLink').value = finalUrl;
-            document.getElementById('testBtn').href = finalUrl; // Update target tombol Buka Link
-            document.getElementById('resultModal').classList.remove('hidden');
-        }
-
-        // --- UTILS ---
-        function formatMe(el) { let val = el.value.replace(/[^0-9]/g, ''); if (!val) { el.value = ''; return; } el.value = Number(val).toLocaleString('id-ID'); autoCalc(); }
-        function getVal(id) { return (Number(document.getElementById(id).value.replace(/\./g, '')) || 0); }
-        function setDisplay(id, val) { document.getElementById(id).value = val.toLocaleString('id-ID'); }
-        function formatRp(val) { return "Rp " + val.toLocaleString('id-ID'); }
-        function addRow(tbodyId) { addTableRow(tbodyId, '', ''); }
-        function addTableRow(tbodyId, u, j) {
-            const tbody = document.getElementById(tbodyId);
-            const tr = document.createElement('tr');
-            tr.className = "hover:bg-white/5 transition group";
-            let dj = j !== '' ? Number(j).toLocaleString('id-ID') : '';
-            tr.innerHTML = `
-                <td class="p-2"><input type="text" class="input-field !bg-transparent !border-none !p-1 text-sm text-gray-300 focus:text-white focus:bg-white/5" value="${u}" placeholder="Nama Item..."></td>
-                <td class="p-2 w-32"><input type="text" class="input-field money-input !bg-transparent !border-none !p-1 text-sm text-gray-300 focus:text-white focus:bg-white/5" value="${dj}" onkeyup="formatMe(this); autoCalc()" placeholder="0"></td>
-                <td class="p-2 w-10 text-center"><button onclick="this.closest('tr').remove(); autoCalc()" class="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-trash"></i></button></td>
+    function renderMarginTable() {
+        const body = document.getElementById('tableMarginBody');
+        const row = (label, omset, hpp, laba, colorClass) => {
+            const pct = omset > 0 ? ((laba/omset)*100).toFixed(1) : 0;
+            return `
+                <tr class="hover:bg-white/5 transition">
+                    <td class="px-6 py-3 font-bold ${colorClass}">${label}</td>
+                    <td class="px-6 py-3 text-right font-mono text-gray-300">Rp ${Number(omset).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-3 text-right font-mono text-gray-400">Rp ${Number(hpp).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-3 text-right font-mono font-bold ${laba<0?'text-red-400':'text-white'}">Rp ${Number(laba).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-3 text-right font-mono font-bold ${colorClass}">${pct}%</td>
+                </tr>
             `;
-            tbody.appendChild(tr);
-        }
-        function copyLink() { const el = document.getElementById('finalLink'); el.select(); document.execCommand('copy'); alert('Link tersalin!'); }
-    </script>
+        };
+
+        let html = '';
+        html += row('BPOM', DATA.omsetBpom, DATA.hppBpom, DATA.labaBpom, 'text-cyan-400');
+        html += row('Non-BPOM', DATA.omsetNonBpom, DATA.hppNonBpom, DATA.labaNonBpom, 'text-cyan-400');
+        html += `<tr class="border-t border-white/5"><td colspan="5"></td></tr>`;
+        html += row('Online', DATA.omsetOnline, DATA.hppOnline, DATA.labaOnline, 'text-purple-400');
+        html += row('Offline', DATA.omsetOffline, DATA.hppOffline, DATA.labaOffline, 'text-purple-400');
+        body.innerHTML = html;
+    }
+
+    // --- 4. CHARTS CONFIGURATION ---
+    function renderCharts() {
+        // Chart 1: Struktur Pengeluaran
+        const ctxPie = document.getElementById('chartPengeluaran').getContext('2d');
+        
+        // Hitung total ops untuk pie chart
+        const totalOps = DATA.rincianPokok.reduce((a,b)=>a+b.jumlah,0) + DATA.rincianLain.reduce((a,b)=>a+b.jumlah,0);
+        
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['HPP/Barang', 'Ops Pokok', 'Ops Lain', 'Laba Bersih'],
+                datasets: [{
+                    data: [DATA.hppTotal, DATA.rincianPokok.reduce((a,b)=>a+b.jumlah,0), DATA.rincianLain.reduce((a,b)=>a+b.jumlah,0), DATA.labaBersih],
+                    backgroundColor: ['#f43f5e', '#fbbf24', '#a8a29e', '#60FF00'],
+                    borderColor: '#000',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#fff', font: {size: 10} } }
+                }
+            }
+        });
+
+        // Chart 2: Margin Comparison (Bar)
+        const ctxBar = document.getElementById('chartMargin').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['BPOM', 'Non-BPOM', 'Online', 'Offline'],
+                datasets: [
+                    {
+                        label: 'Omset',
+                        data: [DATA.omsetBpom, DATA.omsetNonBpom, DATA.omsetOnline, DATA.omsetOffline],
+                        backgroundColor: 'rgba(34, 211, 238, 0.5)',
+                        borderColor: '#22d3ee',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Laba',
+                        data: [DATA.labaBpom, DATA.labaNonBpom, DATA.labaOnline, DATA.labaOffline],
+                        backgroundColor: 'rgba(96, 255, 0, 0.7)',
+                        borderColor: '#60FF00',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#94a3b8', font: {size: 10} }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#fff', font: {size: 11, weight:'bold'} }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                }
+            }
+        });
+    }
+
+    // --- MAIN INIT ---
+    window.onload = function() {
+        loadData();
+        renderUI();
+    };
+</script>
+
 </body>
 </html>
